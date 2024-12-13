@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Svenska Betyg</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #score {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .subjects-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .subject {
+            width: 45%;
+            margin-bottom: 15px;
+        }
+        label {
+            margin-right: 10px;
+        }
+        .grades {
+            display: flex;
+            gap: 10px;
+        }
+        .grades input[type="radio"] {
+            display: none;
+        }
+        .grades label {
+            display: inline-block;
+            padding: 10px 20px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .grades input[type="radio"]:checked + label {
+            background-color: #007BFF;
+            border-color: #007BFF;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Svenska Betyg</h1>
+    <p id="score">Total Score: 0</p>
+    <div id="grades-container" class="subjects-container"></div>
+
+    <script>
+        const subjects = [
+            "Engelska", "Matematik", "Svenska", "Biologi", "Kemi", "Fysik", 
+            "Historia", "Geografi", "Religion", "Samhällskunskap", "Idrott och hälsa", 
+            "Bild", "Musik", "Hem- och konsumentkunskap", "Slöjd", "Teknik", "Moderna språk"
+        ];
+
+        const gradesContainer = document.getElementById('grades-container');
+
+        function setGradesFromLocalStorage() {
+            const gradesString = localStorage.getItem('grades');
+            if (gradesString) {
+                console.log('Loading grades from localStorage:', gradesString);
+                const grades = JSON.parse(gradesString);
+                for (const subject in grades) {
+                    const grade = grades[subject];
+                    const radio = document.getElementById(`${subject}-${grade}`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                }
+                calculateScore();
+            }
+        }
+
+        subjects.forEach((subject, index) => {
+            const subjectDiv = document.createElement('div');
+            subjectDiv.className = 'subject';
+            subjectDiv.style.alignSelf = index % 2 === 0 ? 'flex-start' : 'flex-end';
+
+            const label = document.createElement('label');
+            label.textContent = subject;
+
+            const gradesDiv = document.createElement('div');
+            gradesDiv.className = 'grades';
+
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(grade => {
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = subject;
+                radio.value = grade;
+                radio.id = `${subject}-${grade}`;
+                radio.addEventListener('change', calculateScore);
+
+                const radioLabel = document.createElement('label');
+                radioLabel.htmlFor = radio.id;
+                radioLabel.textContent = grade;
+
+                gradesDiv.appendChild(radio);
+                gradesDiv.appendChild(radioLabel);
+            });
+
+            subjectDiv.appendChild(label);
+            subjectDiv.appendChild(gradesDiv);
+            gradesContainer.appendChild(subjectDiv);
+        });
+
+        function calculateScore() {
+            const gradeValues = {
+                'A': 20,
+                'B': 17.5,
+                'C': 15,
+                'D': 12.5,
+                'E': 10,
+                'F': 0
+            };
+
+            let totalScore = 0;
+            const grades = {};
+
+            subjects.forEach(subject => {
+                const selectedGrade = document.querySelector(`input[name="${subject}"]:checked`);
+                if (selectedGrade) {
+                    totalScore += gradeValues[selectedGrade.value];
+                    grades[subject] = selectedGrade.value;
+                }
+            });
+
+            document.getElementById('score').textContent = `Total Score: ${totalScore}`;
+            const gradesString = JSON.stringify(grades);
+            console.log('Saving grades to localStorage:', gradesString);
+            localStorage.setItem('grades', gradesString);
+        }
+
+        window.onload = setGradesFromLocalStorage;
+    </script>
+</body>
+</html>
